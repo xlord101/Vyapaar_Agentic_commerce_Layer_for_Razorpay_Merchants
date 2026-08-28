@@ -1,0 +1,16 @@
+node_modules/
+dist/
+
+# Local database — contains seeded demo data and any orders you create.
+data/
+
+# Secrets. Never commit these.
+.env
+.env.local
+*.pem
+
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+.idea/

@@ -1,0 +1,15 @@
+# Normalise line endings so the repo checks out cleanly on any platform.
+* text=auto eol=lf
+
+*.ts text
+*.js text
+*.json text
+*.md text
+*.css text
+*.html text
+*.yml text
+
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
