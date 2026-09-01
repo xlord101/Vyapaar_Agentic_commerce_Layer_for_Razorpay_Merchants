@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Vyapaar — Agentic Commerce Layer</title>
+<link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+
+<header>
+  <div class="brand">Vyapaar<span>.</span></div>
+  <div class="tagline">Agentic commerce for Razorpay merchants — bounded, gated, auditable</div>
+  <div class="spacer"></div>
+  <div class="badges">
+    <span class="badge" id="badge-payments">payments</span>
+    <span class="badge" id="badge-parser">parser</span>
+    <span class="badge mono" id="badge-ledger">ledger</span>
+    <button class="small" id="btn-verify">Verify chain</button>
+  </div>
+</header>
+
+<main>
+
+  <!-- ================= LEFT ================= -->
+  <div class="col-left">
+
+    <div class="card">
+      <h2>Buyer mandate <span class="hint">the agent's authority</span></h2>
+      <div class="card-body">
+        <div id="mandates"><div class="empty">No mandates yet.</div></div>
+
+        <div style="margin-top:12px; border-top:1px solid var(--border); padding-top:12px;">
+          <label style="margin-bottom:8px;">Issue a new mandate</label>
+          <div class="field">
+            <input type="text" id="m-principal" placeholder="Principal (who is delegating)" value="ops.lead@acme.in" />
+          </div>
+          <div class="field">
+            <input type="text" id="m-purpose" placeholder="Purpose" value="Outfit the Bengaluru office" />
+          </div>
+          <div class="row field">
+            <input type="number" id="m-pertxn" placeholder="Per-txn cap ₹" value="20000" />
+            <input type="number" id="m-total" placeholder="Total cap ₹" value="60000" />
+          </div>
+          <div class="row field">
+            <input type="number" id="m-approval" placeholder="Approve above ₹" value="12000" />
+            <input type="number" id="m-qty" placeholder="Max qty/line" value="3" />
+          </div>
+          <button class="primary" id="btn-mandate" style="width:100%">Issue mandate</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Fault injection <span class="hint">simulator</span></h2>
+      <div class="card-body">
+        <p style="margin:0 0 10px; font-size:12px; color:var(--text-2);">
+          Break the payment path on purpose, then watch the agent recover.
+        </p>
+        <div class="fault-grid">
+          <button class="fault-btn" data-fault="dropNextWebhook">Drop webhook</button>
+          <button class="fault-btn" data-fault="failPayment">Fail payment</button>
+          <button class="fault-btn" data-fault="timeoutCreateOrder">Timeout create</button>
+          <button class="fault-btn" data-fault="leavePaymentPending">Leave pending</button>
+        </div>
+        <div class="btn-row" style="margin-top:10px">
+          <button class="small" id="btn-clear-faults">Clear faults</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Merchant policy <span class="hint">growth guardrails</span></h2>
+      <div class="card-body" id="policy"></div>
+    </div>
+
+  </div>
+
+  <!-- ================= CENTER ================= -->
+  <div class="col-center">
+
+    <div class="card">
+      <h2>Run the AI buyer <span class="hint">plan → discover → offer → gate → pay</span></h2>
+      <div class="card-body">
+        <div class="field">
+          <label>What does the buyer want?</label>
+          <textarea id="request">I need 2 ergonomic mesh chairs under 20000 each, delivered within 5 days</textarea>
+        </div>
+        <div class="btn-row">
+          <button class="primary" id="btn-run">Run agent</button>
+          <button id="btn-dry">Dry run (quote only)</button>
+          <button id="btn-parse">Parse only</button>
+        </div>
+        <label class="toggle" style="margin-top:10px">
+          <input type="checkbox" id="accept-offers" checked />
+          Allow the agent to accept merchant offers
+        </label>
+        <div id="parse-out"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Run trace <span class="hint" id="run-outcome"></span></h2>
+      <div class="card-body" id="trace">
+        <div class="empty">No run yet. Issue a mandate, then run the agent.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Orders <span class="hint">money actions</span></h2>
+      <div class="card-body" style="padding:0">
+        <table>
+          <thead>
+            <tr><th>Order</th><th>Total</th><th>Status</th><th>Gateway</th><th>Actions</th></tr>
+          </thead>
+          <tbody id="orders"><tr><td colspan="5"><div class="empty">No orders yet.</div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Reconciliation <span class="hint">the failure we handle gracefully</span></h2>
+      <div class="card-body">
+        <p style="margin:0 0 10px; font-size:12px; color:var(--text-2);">
+          A payment can succeed at the gateway while its webhook is lost in transit.
+          The order then sits unpaid while the merchant has already been paid.
+          Turn on <b>Drop webhook</b>, complete a payment, then reconcile — the
+          gateway is treated as the source of truth and the order is recovered.
+        </p>
+        <div id="recon-out"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ================= RIGHT ================= -->
+  <div class="col-audit">
+    <div class="card">
+      <h2>Audit ledger <span class="hint" id="ledger-count"></span></h2>
+      <div class="ledger card-body" id="ledger">
+        <div class="empty">No entries yet.</div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script src="/app.js"></script>
+</body>
+</html>
