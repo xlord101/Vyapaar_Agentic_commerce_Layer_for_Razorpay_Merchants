@@ -1,0 +1,34 @@
+# Render Blueprint — deploy Vyapaar from this repo with one click.
+# Docs: https://render.com/docs/blueprint-spec
+#
+# After connecting the repo, Render auto-deploys on every push to `main`.
+# The three RAZORPAY_* secrets below use `sync: false`, which means Render
+# will prompt you to enter them in the dashboard (they are NEVER stored here).
+# Copy the same values you put in GitHub Actions secrets — see DEPLOYMENT.md.
+services:
+  - type: web
+    name: vyapaar-agent
+    runtime: node
+    plan: free
+    region: singapore       # closest valid region to India; keep low latency to Razorpay
+    branch: main
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/v1/status
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: PORT
+        sync: false           # Render injects the listening port automatically
+      - key: RAZORPAY_FORCE_SIMULATOR
+        value: "false"        # show REAL order creation in the live dashboard
+      - key: LLM_FORCE_HEURISTIC
+        value: "true"         # deterministic parser — no LLM key needed in prod
+      - key: PUBLIC_URL
+        sync: false           # set to your Render URL (https://vyapaar-agent.onrender.com) after first deploy
+      - key: RAZORPAY_KEY_ID
+        sync: false           # paste your rzp_test_... key
+      - key: RAZORPAY_KEY_SECRET
+        sync: false           # paste your test secret
+      - key: RAZORPAY_WEBHOOK_SECRET
+        sync: false           # leave blank unless you configure webhooks (see DEPLOYMENT.md)

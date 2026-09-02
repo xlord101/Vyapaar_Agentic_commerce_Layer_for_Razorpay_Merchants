@@ -1,0 +1,52 @@
+name: CI — build, test, verify
+
+# Runs on every push to main and on PRs. Proves the repo is self-contained and
+# push-ready from any IDE: clone, install, build, test, verify the ledger.
+#
+# The Razorpay test keys live in GitHub Actions secrets
+# (Settings -> Secrets and variables -> Actions):
+#   RAZORPAY_KEY_ID      rzp_test_...
+#   RAZORPAY_KEY_SECRET  ...
+# When both are present, the real adapter is exercised against Razorpay test
+# mode. Without them the suite still passes on the built-in simulator.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Tests (hermetic — simulator + heuristic, never hits live API)
+        run: npm test
+
+      - name: Verify audit ledger chain
+        run: npm run verify:ledger
+
+      - name: Verify Razorpay adapter against live test mode
+        # Read the secrets context directly. A step's own `env` block is applied
+        # only after its `if` is evaluated, so testing `env.RAZORPAY_KEY_ID`
+        # here would always see an empty value and silently skip this step.
+        if: ${{ secrets.RAZORPAY_KEY_ID != '' && secrets.RAZORPAY_KEY_SECRET != '' }}
+        env:
+          RAZORPAY_KEY_ID: ${{ secrets.RAZORPAY_KEY_ID }}
+          RAZORPAY_KEY_SECRET: ${{ secrets.RAZORPAY_KEY_SECRET }}
+          RAZORPAY_FORCE_SIMULATOR: "false"
+        run: npm run verify:razorpay
