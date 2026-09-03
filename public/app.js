@@ -75,7 +75,7 @@ async function loadMandates() {
 function renderMandates() {
   const el = $("mandates");
   if (!state.mandates.length) {
-    el.innerHTML = `<div class="empty">No mandates yet.</div>`;
+    el.innerHTML = `<div class="empty">No mandates yet — issue one from the form above to delegate the agent's spending authority, then run the buyer.</div>`;
     return;
   }
   el.innerHTML = state.mandates
@@ -380,20 +380,6 @@ document.querySelectorAll(".fault-btn").forEach((b) =>
   try {
     await loadStatus();
     await refreshAll();
-    if (!state.mandates.length) {
-      await api("/api/v1/mandates", {
-        method: "POST",
-        body: JSON.stringify({
-          principal: "ops.lead@acme.in",
-          purpose: "Outfit the Bengaluru office",
-          perTxnCap: 20000,
-          totalCap: 60000,
-          approvalAbove: 12000,
-          maxQtyPerLine: 3,
-        }),
-      });
-      await refreshAll();
-    }
   } catch (err) {
     toast(err.message, "error");
   }
