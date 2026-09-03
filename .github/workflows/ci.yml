@@ -7,9 +7,13 @@ name: CI — build, test, verify
 # (Settings -> Secrets and variables -> Actions):
 #   RAZORPAY_KEY_ID      rzp_test_...
 #   RAZORPAY_KEY_SECRET  ...
-# When both are present, the real adapter is exercised against Razorpay test
-# mode in a dedicated, secret-gated job. Without them the suite still passes
-# on the built-in simulator.
+# When both are present they are passed to the verify:razorpay step as env vars
+# and the real adapter is exercised against Razorpay test mode. When they are
+# absent the step still runs but verifyRazorpay.ts self-skips (exits 0) — running
+# on the built-in simulator is a supported mode, not an error.
+#
+# NOTE: a step/job `if:` cannot read the `secrets` context, so we never gate on
+# it. The script itself decides whether there is anything to verify.
 
 on:
   push:
@@ -41,25 +45,10 @@ jobs:
       - name: Verify audit ledger chain
         run: npm run verify:ledger
 
-  verify-razorpay:
-    # `secrets` is only readable in a job-level `if`, not a step-level one, so
-    # the live-API check lives in its own job that is skipped when no keys exist.
-    needs: verify
-    if: ${{ secrets.RAZORPAY_KEY_ID != '' && secrets.RAZORPAY_KEY_SECRET != '' }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node 22
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-
-      - name: Install
-        run: npm ci
-
-      - name: Verify Razorpay adapter against live test mode
+      - name: Verify Razorpay adapter against live test mode (skips if no keys)
+        # A step `if:` cannot read `secrets`, so we do not gate here. The keys are
+        # passed as env vars (allowed) and verifyRazorpay.ts exits 0 on its own
+        # when no keys are configured.
         env:
           RAZORPAY_KEY_ID: ${{ secrets.RAZORPAY_KEY_ID }}
           RAZORPAY_KEY_SECRET: ${{ secrets.RAZORPAY_KEY_SECRET }}
